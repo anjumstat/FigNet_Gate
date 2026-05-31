@@ -48,7 +48,7 @@ This repository contains Python scripts for VARDON (Variational Adaptive Real Dr
 ---
 
 ### 04_Feature_Gate_Experiments.py
-**Purpose:** Run VARDON variants and baseline models.
+**Purpose:** Run FigNet Gate variants and baseline models.
 
 **Functionality:**
 - Implements 5 DynamicSparsity variants and 3 baseline models.
