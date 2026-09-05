@@ -214,4 +214,165 @@ If you use this code in your research, please cite:
   journal={Scientific Reports},
   year={2026},
 }
+CD-HIT Homology-Aware Evaluation
+After completing the LOSO experiments, we performed an additional evaluation using CD-HIT homology-aware splits to address the reviewers' concerns about sequence leakage between training and test sets. This section describes the five Python scripts used for this analysis.
+
+CD-HIT Homology-Aware Splits
+Overview
+To ensure that no sequences with high similarity appear across train/val/test splits, we applied CD-HIT clustering at 60% sequence identity threshold. This approach prevents overoptimistic performance estimates that could arise from homology leakage, where closely related proteins appear in both training and testing sets.
+
+The complete pipeline consists of five Python scripts:
+Script 1: 06_CDHIT_Clustering.py
+Purpose: Run CD-HIT clustering on all protein sequences to create homology-reduced clusters.
+
+Key Steps:
+
+Load the 4,568 protein sequences from species-specific FASTA files
+
+Prepare a combined FASTA file for clustering
+
+Run CD-HIT at 60% identity threshold (word size = 4)
+
+Parse CD-HIT output to assign cluster IDs to each protein
+
+Output:
+
+filtered_4568_cdhit/sequences.fasta (temporary)
+
+CD-HIT cluster assignments (parsed into memory)
+
+Script 2: 07_Extract_Protein_IDs.py
+Purpose: Extract unique protein IDs from the original dataset to use as a reference list.
+
+Key Steps:
+
+Load the original dataset (all_fish_embeddings_combined.csv)
+
+Extract unique UniProt_ID values
+
+Save to a text file for subsequent filtering
+
+Output:
+
+filtered_4568/protein_ids_4568.txt (4,527 unique IDs)
+
+Script 3: 08_Filter_New_Datasets.py
+Purpose: Filter the homology-aware splits to retain only proteins in the reference ID list.
+
+Key Steps:
+
+Load the homology-aware splits (train.csv, val.csv, test.csv)
+
+Filter each split to keep only proteins in protein_ids_4568.txt
+
+Save filtered splits to a new directory
+
+Output:
+
+filtered_4568_exact/train.csv
+
+filtered_4568_exact/val.csv
+
+filtered_4568_exact/test.csv
+
+Script 4: 09_Run_CDHIT_Splits.py
+Purpose: Run CD-HIT clustering on the filtered dataset and create homology-aware train/val/test splits.
+
+Key Steps:
+
+Combine train, val, and test sets from filtered_4568_exact/
+
+Load FASTA sequences for all proteins
+
+Run CD-HIT clustering at 60% identity
+
+Assign cluster IDs to each protein
+
+Split clusters into train (70%), val (10%), and test (20%) sets
+
+Save final homology-aware splits
+
+Output:
+
+filtered_4568_cdhit/train.csv (3,200 samples, 791 enzymes)
+
+filtered_4568_cdhit/val.csv (481 samples, 128 enzymes)
+
+filtered_4568_cdhit/test.csv (887 samples, 232 enzymes)
+
+CD-HIT Statistics:
+
+Total samples: 4,568
+
+Sequences found: 4,297
+
+CD-HIT clusters: 3,374
+
+Split type: Homology-aware (60% identity)
+
+Script 5: 10_FIGNet_CDHIT_Training.py
+Purpose: Train all FIGNet variants and baselines on the CD-HIT homology-aware splits with full checkpoint support.
+
+Key Steps:
+
+Load CD-HIT splits (train.csv, val.csv, test.csv)
+
+Extract 1,024-dimensional embeddings and labels
+
+For each method and hyperparameter configuration:
+
+Train on train set
+
+Validate on val set (early stopping)
+
+Evaluate on test set
+
+Generate SHAP and LIME explanations for FIGNet models
+
+Save all results with checkpointing
+
+Models Trained:
+
+5 FIGNet variants
+
+6 baseline models (Logistic Regression, MLP, SVM_RBF, SVM_Linear, ReliefF_MLP, ReliefF_SVM)
+
+Output:
+
+FIGNet_CDHIT_Results/runs/lr_[lr]_bs_[bs]/[method]/
+
+csv_files/Experiment_Summary.csv (test metrics)
+
+csv_files/Test_Predictions.csv (per-sample predictions)
+
+npy_files/ (all .npy files)
+
+plots/ (confusion matrix, training history)
+
+models/ (trained model)
+
+FIGNet_CDHIT_Results/CDHIT_Results_All_Models.csv (all results)
+
+FIGNet_CDHIT_Results/CDHIT_Method_Summary.csv (summary by method)
+
+FIGNet_CDHIT_Results/checkpoint.json (resume capability)
+
+Summary of CD-HIT Results
+Split	Samples	Enzymes	Non-Enzymes
+Train	3,200	791	2,409
+Validation	481	128	353
+Test	887	232	655
+Total	4,568	1,151	3,417
+How CD-HIT Addresses Reviewer Concerns
+Reviewer	Point	CD-HIT Addresses
+Reviewer 3	Point 3: Random splits cause homology leakage	CD-HIT ensures no >60% identity across splits
+Reviewer 2	Point 2: Limited generalizability	Homology-aware splits test true generalization
+Reviewer 1	Point 4: Test-set leakage	Strict separation of train/val/test via clusters
+File Naming Convention
+Order	File Name	Purpose
+1	06_CDHIT_Clustering.py	Run CD-HIT clustering
+2	07_Extract_Protein_IDs.py	Extract reference protein IDs
+3	08_Filter_New_Datasets.py	Filter splits to reference IDs
+4	09_Run_CDHIT_Splits.py	Create homology-aware splits
+5	10_FIGNet_CDHIT_Training.py	Train FIGNet on CD-HIT splits
 
