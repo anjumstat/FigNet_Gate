@@ -69,19 +69,33 @@ FIGNet/
 │   ├── 02_Unified_Processor.py
 │   ├── 03_Prepare_Binary_Data.py
 │   ├── 04_Create_LOSO_Splits.py
-│   └── 05_fignet_LOSO_training.py
+│   ├── 05_fignet_LOSO_training.py
+│   ├── 06_CDHIT_Clustering.py
+│   ├── 07_Extract_Protein_IDs.py
+│   ├── 08_Filter_New_Datasets.py
+│   ├── 09_Run_CDHIT_Splits.py
+│   ├── 10_FIGNet_CDHIT_Training.py
+│   ├── 11_Extract_CV_Results.py
+│   ├── 12_Generate_CV_Tables.py
+│   ├── 13_Statistical_Analysis.py
+│   ├── 14_LOSO_Final_Analysis.py
+│   ├── 15_LOSO_Model_Winner_Analysis.py
+│   ├── 16_Architecture_Level_Analysis.py
+│   ├── 17_Generate_Final_Manuscript_Tables.py
+│   ├── 18_CDHIT_Result_Analysis.py
+│   ├── 19_CDHIT_Manuscript_Table.py
+│   ├── 20_Feature_Stability_Analysis.py
+│   ├── 21_TopK_Feature_Stability.py
+│   ├── 22_CV_Feature_Stability.py
+│   ├── 23_Feature_Stability_Summary.py
+│   ├── 24_Figure_ROC_Curves.py
+│   ├── 25_Figure_Training_Dynamics.py
+│   ├── 26_Figure_Feature_Importance.py
+│   ├── 27_Figure_Model_Comparison.py
+│   └── 28_CV_Configuration_Analysis.py
 │
 ├── data/
-│   ├── raw/
-│   └── processed/
-│
 ├── results/
-│   ├── cv_runs/
-│   ├── loso_results/
-│   ├── checkpoint.json
-│   ├── LOSO_Results_All_Models.csv
-│   └── LOSO_Method_Summary.csv
-│
 ├── requirements.txt
 └── README.md
 ```
@@ -785,3 +799,67 @@ Anjum Shahzad
 ---
 
 ⭐ If this repository contributes to your research, please consider citing the associated publication.
+# 📊 Analysis and Reproducibility Codes
+
+After training, the following scripts extract results, perform statistical analysis, and generate figures.
+
+## Result Extraction
+
+| Script | Purpose |
+|--------|---------|
+| `11_Extract_CV_Results.py` | Extract CV results into a single CSV |
+| `12_Generate_CV_Tables.py` | Generate manuscript-ready CV tables |
+| `13_Statistical_Analysis.py` | Friedman test + Wilcoxon pairwise comparisons |
+| `14_LOSO_Final_Analysis.py` | Extract LOSO results and generate tables |
+| `15_LOSO_Model_Winner_Analysis.py` | Best model per species analysis |
+| `16_Architecture_Level_Analysis.py` | Architecture-level performance analysis |
+| `17_Generate_Final_Manuscript_Tables.py` | Final LOSO manuscript tables |
+| `18_CDHIT_Result_Analysis.py` | Extract CD-HIT results |
+| `19_CDHIT_Manuscript_Table.py` | CD-HIT manuscript table |
+
+## Feature Stability Analysis
+
+| Script | Purpose |
+|--------|---------|
+| `20_Feature_Stability_Analysis.py` | Jaccard stability for CD-HIT and LOSO |
+| `21_TopK_Feature_Stability.py` | Top-K stability analysis (K=10,25,50,100,200) |
+| `22_CV_Feature_Stability.py` | CV feature stability across folds |
+| `23_Feature_Stability_Summary.py` | Summarize stability results |
+
+## Figure Generation
+
+| Script | Purpose |
+|--------|---------|
+| `24_Figure_ROC_Curves.py` | ROC curves for LOSO and CD-HIT |
+| `25_Figure_Training_Dynamics.py` | Training dynamics figures |
+| `26_Figure_Feature_Importance.py` | Feature importance + stability + SHAP |
+| `27_Figure_Model_Comparison.py` | MCC/AUC comparison figure |
+
+## Configuration Analysis
+
+| Script | Purpose |
+|--------|---------|
+| `28_CV_Configuration_Analysis.py` | CV configuration performance analysis |
+# 📊 Generated Results
+
+## Summary Files
+
+| File | Description |
+|------|-------------|
+| `LOSO_Results_All_Models.csv` | Complete LOSO results |
+| `LOSO_Method_Summary.csv` | Performance summary by model |
+| `CDHIT_Results_All_Models.csv` | Complete CD-HIT results |
+| `CDHIT_Method_Summary.csv` | Performance summary by method |
+| `CV_All_Configurations_Performance.csv` | CV configuration performance |
+| `TopK_Feature_Stability_Jaccard.xlsx` | Top-K feature stability |
+| `Friedman_results.csv` | Friedman test results |
+| `Wilcoxon_pairwise_results.csv` | Pairwise statistical comparisons |
+
+## Figures
+
+| Figure | Description |
+|--------|-------------|
+| `Figure1_Model_Comparison_MCC_AUC.png` | Best model MCC and AUC comparison |
+| `Figure2_ROC_Macro_LOSO_CDHIT.png` | ROC curves for LOSO and CD-HIT |
+| `Figure3_Training_Dynamics.png` | Training accuracy and loss curves |
+| `Figure4_Feature_Importance_Stability_SHAP.png` | Feature importance, stability, SHAP |
