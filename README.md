@@ -1,378 +1,787 @@
-# FigNet: Enzyme Classification Pipeline
+# 🧬 FIGNet: Feature Importance Gate Network
 
-# FIGNet: Feature Importance Gate Network for Genome-Wide Enzyme Classification
+## Genome-Wide Enzyme Classification Using Deep Learning
 
-## Overview
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Status](https://img.shields.io/badge/Research-Scientific%20Computing-purple)
 
-FIGNet (Feature Importance Gate Network) is a deep learning framework for genome-wide enzyme classification from protein embeddings. It introduces a differentiable feature importance gate that learns continuous importance weights for each embedding dimension, enabling intrinsic model interpretability without post-hoc approximations.
+**FIGNet (Feature Importance Gate Network)** is a deep learning framework designed for **genome-wide enzyme classification from protein embeddings**.
 
-This repository contains the complete code, data processing pipeline, and evaluation framework used in the manuscript:
+The framework introduces a **differentiable Feature Importance Gate**, allowing the model to automatically learn the contribution of each embedding dimension while providing intrinsic interpretability.
+
+This repository contains the complete implementation, preprocessing pipeline, training framework, evaluation scripts, and interpretability analysis used in:
 
 > **"FIGNet: A Deep Learning Framework with Feature Importance Gate for Genome-Wide Enzyme Classification"**
 
-## Key Features
+---
 
-- **5 FIGNet variants** with differentiable feature importance gate
-- **Interpretability** via feature gate, SHAP, and LIME
-- **Leave-One-Species-Out (LOSO)** cross-validation for cross-species generalization
-- **10-fold stratified cross-validation** for hyperparameter selection
-- **11 baseline models** including MLP, Logistic Regression, SVM, and ReliefF
-- **Comprehensive evaluation** with MCC, F1, AUC, Accuracy, Precision, Recall
-- **Three-level checkpoint system** for resuming interrupted runs
+# ✨ Key Contributions
+
+## 🔹 Feature Importance Learning
+
+* Differentiable feature importance gate
+* Learns continuous importance weights for protein embedding dimensions
+* Provides model interpretability without relying only on post-hoc methods
+
+## 🔹 Comprehensive Evaluation Framework
+
+The pipeline includes:
+
+* Leave-One-Species-Out (LOSO) cross-validation
+* 10-fold stratified cross-validation
+* Homology-aware CD-HIT evaluation
+* Multiple baseline comparisons
+* Automated checkpoint recovery system
+
+## 🔹 Interpretability Analysis
+
+Supported explanation methods:
+
+* Feature Importance Gate
+* SHAP analysis
+* LIME explanations
 
 ---
 
-## Repository Structure
+# 🚀 Main Features
+
+| Feature                  | Description                                     |
+| ------------------------ | ----------------------------------------------- |
+| 🧠 FIGNet Models         | 5 variants with feature importance gating       |
+| 🔍 Interpretability      | Gate-based explanation + SHAP + LIME            |
+| 🧬 Cross-species Testing | Leave-One-Species-Out evaluation                |
+| 🔬 Homology Control      | CD-HIT sequence similarity filtering            |
+| 📊 Metrics               | MCC, F1-score, AUC, Accuracy, Precision, Recall |
+| 💾 Checkpoint System     | Resume interrupted experiments automatically    |
+| ⚖️ Baselines             | Comparison with 6 classical ML models           |
+
+---
+
+# 📂 Repository Structure
+
+```text
 FIGNet/
+│
 ├── codes/
-│ ├── 01_Organize_Fish_Data.py # Organize raw HDF5 and TSV files
-│ ├── 02_Unified_Processor.py # Process and merge embeddings with labels
-│ ├── 03_Prepare_Binary_Data.py # Convert to binary classification format
-│ ├── 04_Create_LOSO_Splits.py # Create Leave-One-Species-Out splits
-│ └── 05_fignet_LOSO_training.py # Main training script with checkpointing
+│   ├── 01_Organize_Fish_Data.py
+│   ├── 02_Unified_Processor.py
+│   ├── 03_Prepare_Binary_Data.py
+│   ├── 04_Create_LOSO_Splits.py
+│   └── 05_fignet_LOSO_training.py
+│
 ├── data/
-│ ├── raw/ # Raw HDF5 and TSV files (not included)
-│ └── processed/ # Processed datasets (not included)
-├── results/ # Results directory (generated)
-│ ├── cv_runs/ # CV results per species
-│ ├── loso_results/ # LOSO test results per species
-│ ├── checkpoint.json # Progress checkpoint
-│ ├── LOSO_Results_All_Models.csv # All LOSO results
-│ └── LOSO_Method_Summary.csv # Summary by method
-├── requirements.txt # Python dependencies
-└── README.md # This file
+│   ├── raw/
+│   └── processed/
+│
+├── results/
+│   ├── cv_runs/
+│   ├── loso_results/
+│   ├── checkpoint.json
+│   ├── LOSO_Results_All_Models.csv
+│   └── LOSO_Method_Summary.csv
+│
+├── requirements.txt
+└── README.md
+```
 
 ---
 
-## Dataset
+# 🧬 Dataset
 
-### Species Included (12 Fish Species)
+## Species Dataset
 
-| Species | Proteins | Enzymes | Non-Enzymes |
-|---------|----------|---------|-------------|
-| Zebrafish | 3,303 | 869 | 2,434 |
-| Rainbow Trout | 351 | 65 | 286 |
-| Atlantic Salmon | 183 | 55 | 128 |
-| Fugu | 172 | 34 | 138 |
-| Channel Catfish | 103 | 15 | 88 |
-| Goldfish | 129 | 26 | 103 |
-| Common Carp | 117 | 31 | 86 |
-| Tetraodon | 75 | 22 | 53 |
-| Medaka | 74 | 25 | 49 |
-| Coho Salmon | 27 | 4 | 23 |
-| Nile Tilapia | 21 | 3 | 18 |
-| Electric Eel | 13 | 2 | 11 |
-| **Total** | **4,568** | **1,151** | **3,417** |
+The dataset contains **12 fish species** with a total of:
 
-### Protein Embeddings
+| Category       | Number |
+| -------------- | -----: |
+| Total Proteins |  4,568 |
+| Enzymes        |  1,151 |
+| Non-Enzymes    |  3,417 |
 
-- **Source**: UniProt Knowledgebase (Swiss-Prot)
-- **Embedding type**: Pre-computed UniProt protein language model embeddings
-- **Dimension**: 1024-dimensional vector representations
-- **Format**: `Embedding_0` to `Embedding_1023`
+## Species Distribution
+
+| Species         | Proteins |  Enzymes | Non-Enzymes |
+| --------------- | -------: | -------: | ----------: |
+| Zebrafish       |     3303 |      869 |        2434 |
+| Rainbow Trout   |      351 |       65 |         286 |
+| Atlantic Salmon |      183 |       55 |         128 |
+| Fugu            |      172 |       34 |         138 |
+| Channel Catfish |      103 |       15 |          88 |
+| Goldfish        |      129 |       26 |         103 |
+| Common Carp     |      117 |       31 |          86 |
+| Tetraodon       |       75 |       22 |          53 |
+| Medaka          |       74 |       25 |          49 |
+| Coho Salmon     |       27 |        4 |          23 |
+| Nile Tilapia    |       21 |        3 |          18 |
+| Electric Eel    |       13 |        2 |          11 |
+| **Total**       | **4568** | **1151** |    **3417** |
 
 ---
 
-## Installation
+# 🧪 Protein Embeddings
 
-### Requirements
+| Property  | Details                                        |
+| --------- | ---------------------------------------------- |
+| Source    | UniProt Knowledgebase (Swiss-Prot)             |
+| Type      | Pre-computed protein language model embeddings |
+| Dimension | 1024 features                                  |
+| Format    | Embedding_0 → Embedding_1023                   |
 
-- Python 3.9+
-- TensorFlow 2.x
-- scikit-learn
-- pandas, numpy
-- matplotlib, seaborn
-- SHAP (optional, for interpretability)
-- LIME (optional, for interpretability)
-- skrebate (optional, for ReliefF)
+---
 
-### Setup
+# ⚙️ Installation
+
+## Requirements
+
+* Python ≥ 3.9
+* TensorFlow ≥ 2.x
+* scikit-learn
+* pandas
+* numpy
+* matplotlib
+* seaborn
+* SHAP *(optional)*
+* LIME *(optional)*
+* skrebate *(optional)*
+
+---
+
+## Setup
 
 ```bash
-# Clone the repository
+# Clone repository
+
 git clone https://github.com/yourusername/FIGNet.git
+
 cd FIGNet
 
+
 # Install dependencies
+
 pip install -r requirements.txt
 
-# Optional: Install for interpretability
+
+# Install interpretability packages
+
 pip install shap lime skrebate
-requirements.txt
-tensorflow>=2.10.0
-scikit-learn>=1.1.0
-pandas>=1.5.0
-numpy>=1.23.0
-matplotlib>=3.5.0
-seaborn>=0.12.0
-h5py>=3.7.0
-joblib>=1.2.0
-Usage
-Step 1: Organize Raw Data
+```
+# ▶️ Usage
+
+The complete FIGNet pipeline consists of five major stages:
+
+---
+
+## Step 1 — Organize Raw Data
+
+```bash
 python codes/01_Organize_Fish_Data.py
-Input: Raw HDF5 and TSV files in D:\zebfish\
-Output: Organized data in D:\zebfish_organized\
+```
 
-Step 2: Process and Merge Data
+**Input**
+
+```text
+Raw HDF5 and TSV files
+```
+
+**Output**
+
+```text
+Organized dataset
+```
+
+---
+
+## Step 2 — Process and Merge Data
+
+```bash
 python codes/02_Unified_Processor.py
-Input: Organized data from Step 1
-Output: Processed embeddings and combined dataset
+```
 
-Step 3: Prepare Binary Classification Data
+**Input**
+
+```text
+Organized data from Step 1
+```
+
+**Output**
+
+```text
+Processed embeddings with labels
+```
+
+---
+
+## Step 3 — Prepare Binary Classification Dataset
+
+```bash
 python codes/03_Prepare_Binary_Data.py
-Input: Combined dataset from Step 2
-Output: Binary classification dataset with species labels
+```
 
-Step 4: Create LOSO Splits
+**Input**
+
+```text
+Combined dataset from Step 2
+```
+
+**Output**
+
+```text
+Binary enzyme/non-enzyme classification dataset
+```
+
+---
+
+## Step 4 — Create LOSO Splits
+
+```bash
 python codes/04_Create_LOSO_Splits.py
-Input: Binary dataset with species
-Output: Train/test splits for each species
+```
 
-Step 5: Train and Evaluate FIGNet Models
+**Input**
+
+```text
+Binary dataset containing species information
+```
+
+**Output**
+
+```text
+Leave-One-Species-Out training/testing splits
+```
+
+---
+
+## Step 5 — Train and Evaluate FIGNet Models
+
+```bash
 python codes/05_fignet_LOSO_training.py
-Input: LOSO splits from Step 4
-Output: CV and LOSO results for all models
+```
 
-Models
-FIGNet Variants (5)
-Model	Description
-FIGNet_Gate_Only	Feature Importance Gate only
-FIGNet_Gate_RealVD	Gate + Real Variational Dropout
-FIGNet_Gate_AdaptiveVD	Gate + Adaptive Variational Dropout
-FIGNet_Gate_Sparsity	Gate + Dynamic Sparsity
-FIGNet_Gate_Full	All components combined
-Baseline Models (6)
-Model	Description
-Logistic_Regression	Linear classifier
-MLP_Baseline	Standard MLP with dropout
-SVM_RBF	SVM with RBF kernel
-SVM_Linear	SVM with linear kernel
-ReliefF_MLP	ReliefF feature selection + MLP
-ReliefF_SVM	ReliefF feature selection + SVM
-Checkpoint System
-The code includes a three-level checkpoint system for resuming interrupted runs:
+**Input**
 
-Level	What It Tracks	Saved In
-Level 1	Individual CV runs (method + lr + bs)	checkpoint.json
-Level 2	Species CV complete (all models done)	checkpoint.json
-Level 3	Individual LOSO model tests	checkpoint.json
-Resuming After Interruption
-Simply re-run the same command:
+```text
+LOSO splits
+```
+
+**Output**
+
+```text
+Cross-validation and independent LOSO test results
+```
+
+---
+
+# 🧠 Models
+
+## FIGNet Variants
+
+The framework contains five FIGNet architectures:
+
+| Model                  | Description                         |
+| ---------------------- | ----------------------------------- |
+| FIGNet_Gate_Only       | Feature Importance Gate only        |
+| FIGNet_Gate_RealVD     | Gate + Real Variational Dropout     |
+| FIGNet_Gate_AdaptiveVD | Gate + Adaptive Variational Dropout |
+| FIGNet_Gate_Sparsity   | Gate + Dynamic Sparsity             |
+| FIGNet_Gate_Full       | Complete model with all components  |
+
+---
+
+## Baseline Models
+
+Six classical machine learning models are implemented for comparison:
+
+| Model               | Description                            |
+| ------------------- | -------------------------------------- |
+| Logistic Regression | Linear classification model            |
+| MLP Baseline        | Standard multilayer perceptron         |
+| SVM-RBF             | Support Vector Machine with RBF kernel |
+| SVM-Linear          | Linear Support Vector Machine          |
+| ReliefF-MLP         | ReliefF feature selection + MLP        |
+| ReliefF-SVM         | ReliefF feature selection + SVM        |
+
+---
+
+# 💾 Checkpoint System
+
+FIGNet includes a **three-level checkpoint mechanism** to automatically recover interrupted experiments.
+
+| Level   | Tracks                                                          | Storage         |
+| ------- | --------------------------------------------------------------- | --------------- |
+| Level 1 | Individual CV experiments (method + learning rate + batch size) | checkpoint.json |
+| Level 2 | Species-level CV completion                                     | checkpoint.json |
+| Level 3 | Individual LOSO model testing                                   | checkpoint.json |
+
+---
+
+## Resume Interrupted Training
+
+Simply restart the training command:
+
+```bash
 python codes/05_fignet_LOSO_training.py
-The code will automatically:
+```
 
-Load checkpoint.json
+The framework automatically:
 
-Skip completed runs
+✅ Loads previous checkpoints <br>
+✅ Detects completed experiments <br>
+✅ Skips finished runs <br>
+✅ Continues from the last unfinished experiment
 
-Resume from where it stopped
+---
 
-Results Structure
-CV Results
-results/cv_runs/[species]/lr_[lr]_bs_[bs]/[method]/
-├── csv_files/
-│   ├── Experiment_Summary.csv       # Mean ± std across folds
-│   ├── Fold_Metrics.csv             # Per-fold metrics
-│   └── All_CV_Predictions.csv       # All predictions
-├── npy_files/                       # All fold .npy files
-├── plots/                           # Training history and confusion matrices
-└── models/                          # 10 fold models
-LOSO Results
-results/loso_results/[species]/[method]_lr[lr]_bs[bs]/
-├── csv_files/
-│   ├── Final_Independent_Test_Result.csv   # Test metrics
-│   └── Independent_Test_Predictions.csv    # Per-sample predictions
-├── npy_files/                              # Predictions and labels
-├── plots/                                  # Confusion matrix
-└── models/                                 # Final trained model
-Summary Files
+# 📊 Results Organization
+
+## Cross-Validation Results
+
+Results are saved as:
+
+```text
 results/
-├── checkpoint.json                         # Progress checkpoint
-├── LOSO_Results_All_Models.csv             # All LOSO results
-├── LOSO_Method_Summary.csv                 # Summary by method
-└── LOSO_Species_Performance.png            # Species-wise performance plot
-Evaluation Metrics
-Accuracy: Overall correctness
+└── cv_runs/
+    └── species/
+        └── lr_[lr]_bs_[bs]/
+            └── method/
+```
 
-Precision: Positive predictive value
+Structure:
 
-Recall: Sensitivity / True positive rate
+```text
+method/
+│
+├── csv_files/
+│   ├── Experiment_Summary.csv
+│   ├── Fold_Metrics.csv
+│   └── All_CV_Predictions.csv
+│
+├── npy_files/
+│
+├── plots/
+│
+└── models/
+```
 
-F1 Score: Harmonic mean of precision and recall
+---
 
-MCC: Matthews correlation coefficient (primary metric for imbalanced data)
+## LOSO Independent Test Results
 
-AUC: Area under ROC curve
+```text
+results/
+└── loso_results/
+    └── species/
+        └── method_lr_[lr]_bs_[bs]/
+```
 
-Jaccard Stability: Feature selection consistency across CV folds
+Contains:
 
-Citation
-If you use this code in your research, please cite:
+```text
+csv_files/
+│
+├── Final_Independent_Test_Result.csv
+└── Independent_Test_Predictions.csv
+
+
+npy_files/
+
+plots/
+
+models/
+```
+
+---
+
+# 📁 Summary Result Files
+
+The final generated outputs include:
+
+| File                         | Description                            |
+| ---------------------------- | -------------------------------------- |
+| checkpoint.json              | Training progress tracking             |
+| LOSO_Results_All_Models.csv  | Complete LOSO results                  |
+| LOSO_Method_Summary.csv      | Performance summary by model           |
+| LOSO_Species_Performance.png | Species-wise performance visualization |
+
+---
+
+# 📈 Evaluation Metrics
+
+FIGNet performance is evaluated using multiple metrics:
+
+| Metric            | Description                                                               |
+| ----------------- | ------------------------------------------------------------------------- |
+| Accuracy          | Overall prediction correctness                                            |
+| Precision         | Positive prediction reliability                                           |
+| Recall            | True positive detection ability                                           |
+| F1 Score          | Harmonic mean of precision and recall                                     |
+| MCC               | Matthews Correlation Coefficient (primary metric for imbalanced datasets) |
+| AUC               | Area under ROC curve                                                      |
+| Jaccard Stability | Feature selection consistency across folds                                |
+
+---
+
+# 📚 Citation
+
+If you use this repository in your research, please cite:
+
+```bibtex
 @article{shahzad2026fignet,
-  title={FIGNet: A Deep Learning Framework with Feature Importance Gate for Genome-Wide Enzyme Classification},
-  author={Shahzad, Anjum and ...},
-  journal={Scientific Reports},
-  year={2026},
+
+title={FIGNet: A Deep Learning Framework with Feature Importance Gate for Genome-Wide Enzyme Classification},
+
+author={Shahzad, Anjum and ...},
+
+journal={Scientific Reports},
+
+year={2026}
+
 }
-CD-HIT Homology-Aware Evaluation
-After completing the LOSO experiments, we performed an additional evaluation using CD-HIT homology-aware splits to address the reviewers' concerns about sequence leakage between training and test sets. This section describes the five Python scripts used for this analysis.
+```
+# 🧬 CD-HIT Homology-Aware Evaluation
 
-CD-HIT Homology-Aware Splits
-Overview
-To ensure that no sequences with high similarity appear across train/val/test splits, we applied CD-HIT clustering at 60% sequence identity threshold. This approach prevents overoptimistic performance estimates that could arise from homology leakage, where closely related proteins appear in both training and testing sets.
+## Motivation
 
-The complete pipeline consists of five Python scripts:
-Script 1: 06_CDHIT_Clustering.py
-Purpose: Run CD-HIT clustering on all protein sequences to create homology-reduced clusters.
+To address possible concerns regarding **sequence similarity leakage** between training and testing datasets, FIGNet was additionally evaluated using a **homology-aware data splitting strategy**.
 
-Key Steps:
+The CD-HIT evaluation ensures that highly similar protein sequences are not distributed across different dataset partitions.
 
-Load the 4,568 protein sequences from species-specific FASTA files
+---
 
-Prepare a combined FASTA file for clustering
+# 🔬 CD-HIT Workflow Overview
 
-Run CD-HIT at 60% identity threshold (word size = 4)
+The homology-aware evaluation pipeline applies:
 
-Parse CD-HIT output to assign cluster IDs to each protein
+* CD-HIT clustering
+* Sequence identity filtering
+* Cluster-based train/validation/test separation
+* Independent FIGNet evaluation
 
-Output:
+A sequence identity threshold of:
 
-filtered_4568_cdhit/sequences.fasta (temporary)
+```text
+60%
+```
 
-CD-HIT cluster assignments (parsed into memory)
+was used to minimize possible homology leakage.
 
-Script 2: 07_Extract_Protein_IDs.py
-Purpose: Extract unique protein IDs from the original dataset to use as a reference list.
+---
 
-Key Steps:
+# 📂 CD-HIT Pipeline Scripts
 
-Load the original dataset (all_fish_embeddings_combined.csv)
+The complete CD-HIT evaluation consists of five additional scripts.
 
-Extract unique UniProt_ID values
+---
 
-Save to a text file for subsequent filtering
+# Script 1
 
-Output:
+## `06_CDHIT_Clustering.py`
 
-filtered_4568/protein_ids_4568.txt (4,527 unique IDs)
+### Purpose
 
-Script 3: 08_Filter_New_Datasets.py
-Purpose: Filter the homology-aware splits to retain only proteins in the reference ID list.
+Perform CD-HIT clustering on all protein sequences to generate homology-reduced groups.
 
-Key Steps:
+### Main Steps
 
-Load the homology-aware splits (train.csv, val.csv, test.csv)
+1. Load protein sequences from species-specific FASTA files
 
-Filter each split to keep only proteins in protein_ids_4568.txt
+2. Combine all sequences into a single FASTA file
 
-Save filtered splits to a new directory
+3. Run CD-HIT clustering:
 
-Output:
+```text
+Sequence identity threshold: 60%
+Word size: 4
+```
 
-filtered_4568_exact/train.csv
+4. Assign cluster IDs to proteins
 
-filtered_4568_exact/val.csv
+### Output
 
-filtered_4568_exact/test.csv
+```text
+filtered_4568_cdhit/
 
-Script 4: 09_Run_CDHIT_Splits.py
-Purpose: Run CD-HIT clustering on the filtered dataset and create homology-aware train/val/test splits.
+└── sequences.fasta
+```
 
-Key Steps:
+Additional output:
 
-Combine train, val, and test sets from filtered_4568_exact/
+```text
+CD-HIT cluster assignments
+```
 
-Load FASTA sequences for all proteins
+---
 
-Run CD-HIT clustering at 60% identity
+# Script 2
 
-Assign cluster IDs to each protein
+## `07_Extract_Protein_IDs.py`
 
-Split clusters into train (70%), val (10%), and test (20%) sets
+### Purpose
 
-Save final homology-aware splits
+Extract unique protein identifiers from the original dataset.
 
-Output:
+### Processing
 
-filtered_4568_cdhit/train.csv (3,200 samples, 791 enzymes)
+* Load:
 
-filtered_4568_cdhit/val.csv (481 samples, 128 enzymes)
+```text
+all_fish_embeddings_combined.csv
+```
 
-filtered_4568_cdhit/test.csv (887 samples, 232 enzymes)
+* Extract unique:
 
-CD-HIT Statistics:
+```text
+UniProt_ID
+```
 
-Total samples: 4,568
+* Save reference IDs
 
-Sequences found: 4,297
+### Output
 
-CD-HIT clusters: 3,374
+```text
+filtered_4568/
 
-Split type: Homology-aware (60% identity)
+└── protein_ids_4568.txt
+```
 
-Script 5: 10_FIGNet_CDHIT_Training.py
-Purpose: Train all FIGNet variants and baselines on the CD-HIT homology-aware splits with full checkpoint support.
+Contains:
 
-Key Steps:
+```text
+4,527 unique protein IDs
+```
 
-Load CD-HIT splits (train.csv, val.csv, test.csv)
+---
 
-Extract 1,024-dimensional embeddings and labels
+# Script 3
 
-For each method and hyperparameter configuration:
+## `08_Filter_New_Datasets.py`
 
-Train on train set
+### Purpose
 
-Validate on val set (early stopping)
+Filter homology-aware datasets to retain only proteins present in the reference dataset.
 
-Evaluate on test set
+### Processing
 
-Generate SHAP and LIME explanations for FIGNet models
+The script:
 
-Save all results with checkpointing
+* Loads:
 
-Models Trained:
+```text
+train.csv
+val.csv
+test.csv
+```
 
-5 FIGNet variants
+* Filters using:
 
-6 baseline models (Logistic Regression, MLP, SVM_RBF, SVM_Linear, ReliefF_MLP, ReliefF_SVM)
+```text
+protein_ids_4568.txt
+```
 
-Output:
+* Generates clean datasets
 
-FIGNet_CDHIT_Results/runs/lr_[lr]_bs_[bs]/[method]/
+### Output
 
-csv_files/Experiment_Summary.csv (test metrics)
+```text
+filtered_4568_exact/
 
-csv_files/Test_Predictions.csv (per-sample predictions)
+├── train.csv
+├── val.csv
+└── test.csv
+```
 
-npy_files/ (all .npy files)
+---
 
-plots/ (confusion matrix, training history)
+# Script 4
 
-models/ (trained model)
+## `09_Run_CDHIT_Splits.py`
 
-FIGNet_CDHIT_Results/CDHIT_Results_All_Models.csv (all results)
+### Purpose
 
-FIGNet_CDHIT_Results/CDHIT_Method_Summary.csv (summary by method)
+Generate final homology-aware train/validation/test splits.
 
-FIGNet_CDHIT_Results/checkpoint.json (resume capability)
+### Main Steps
 
-Summary of CD-HIT Results
-Split	Samples	Enzymes	Non-Enzymes
-Train	3,200	791	2,409
-Validation	481	128	353
-Test	887	232	655
-Total	4,568	1,151	3,417
-How CD-HIT Addresses Reviewer Concerns
-Reviewer	Point	CD-HIT Addresses
-Reviewer 3	Point 3: Random splits cause homology leakage	CD-HIT ensures no >60% identity across splits
-Reviewer 2	Point 2: Limited generalizability	Homology-aware splits test true generalization
-Reviewer 1	Point 4: Test-set leakage	Strict separation of train/val/test via clusters
-File Naming Convention
-Order	File Name	Purpose
-1	06_CDHIT_Clustering.py	Run CD-HIT clustering
-2	07_Extract_Protein_IDs.py	Extract reference protein IDs
-3	08_Filter_New_Datasets.py	Filter splits to reference IDs
-4	09_Run_CDHIT_Splits.py	Create homology-aware splits
-5	10_FIGNet_CDHIT_Training.py	Train FIGNet on CD-HIT splits
+1. Combine filtered datasets
 
+2. Load corresponding FASTA sequences
+
+3. Perform CD-HIT clustering
+
+4. Assign cluster IDs
+
+5. Split clusters into:
+
+| Dataset    | Percentage |
+| ---------- | ---------: |
+| Training   |        70% |
+| Validation |        10% |
+| Testing    |        20% |
+
+---
+
+# Final CD-HIT Dataset
+
+| Split      |  Samples |  Enzymes | Non-Enzymes |
+| ---------- | -------: | -------: | ----------: |
+| Training   |     3200 |      791 |        2409 |
+| Validation |      481 |      128 |         353 |
+| Testing    |      887 |      232 |         655 |
+| **Total**  | **4568** | **1151** |    **3417** |
+
+---
+
+# CD-HIT Statistics
+
+| Parameter          |          Value |
+| ------------------ | -------------: |
+| Total sequences    |           4568 |
+| Sequences retained |           4297 |
+| CD-HIT clusters    |           3374 |
+| Identity threshold |            60% |
+| Split strategy     | Homology-aware |
+
+---
+
+# Script 5
+
+## `10_FIGNet_CDHIT_Training.py`
+
+### Purpose
+
+Train FIGNet models and baseline methods using CD-HIT homology-aware splits.
+
+---
+
+## Training Pipeline
+
+For every model configuration:
+
+1. Load CD-HIT datasets
+
+2. Extract:
+
+```text
+1024-dimensional protein embeddings
+```
+
+3. Train model
+
+4. Validate using validation set
+
+5. Evaluate on independent test set
+
+6. Generate explanations:
+
+* SHAP
+* LIME
+
+7. Save results with checkpoint support
+
+---
+
+# Models Evaluated
+
+## FIGNet Models
+
+* FIGNet_Gate_Only
+* FIGNet_Gate_RealVD
+* FIGNet_Gate_AdaptiveVD
+* FIGNet_Gate_Sparsity
+* FIGNet_Gate_Full
+
+## Baseline Models
+
+* Logistic Regression
+* MLP Baseline
+* SVM-RBF
+* SVM-Linear
+* ReliefF-MLP
+* ReliefF-SVM
+
+---
+
+# CD-HIT Output Structure
+
+```text
+FIGNet_CDHIT_Results/
+
+├── runs/
+│   └── lr_[lr]_bs_[bs]/
+│       └── method/
+│
+├── CDHIT_Results_All_Models.csv
+│
+├── CDHIT_Method_Summary.csv
+│
+└── checkpoint.json
+```
+
+Individual model results:
+
+```text
+method/
+
+├── csv_files/
+│
+│   ├── Experiment_Summary.csv
+│   └── Test_Predictions.csv
+│
+├── npy_files/
+│
+├── plots/
+│
+└── models/
+```
+
+---
+
+# 🛡️ How CD-HIT Addresses Reviewer Concerns
+
+| Concern                                      | Solution                                                |
+| -------------------------------------------- | ------------------------------------------------------- |
+| Random splits may introduce homology leakage | CD-HIT removes high similarity sequences between splits |
+| Limited cross-species generalization         | Homology-aware testing provides stricter evaluation     |
+| Possible test-set contamination              | Cluster-based separation ensures independent evaluation |
+
+---
+
+# 📜 Script Summary
+
+| Order | Script                        | Purpose                      |
+| ----- | ----------------------------- | ---------------------------- |
+| 1     | `06_CDHIT_Clustering.py`      | Perform CD-HIT clustering    |
+| 2     | `07_Extract_Protein_IDs.py`   | Extract protein IDs          |
+| 3     | `08_Filter_New_Datasets.py`   | Filter datasets              |
+| 4     | `09_Run_CDHIT_Splits.py`      | Create homology-aware splits |
+| 5     | `10_FIGNet_CDHIT_Training.py` | Train FIGNet models          |
+
+---
+
+# 🌟 Reproducibility
+
+This repository provides:
+
+✅ Complete preprocessing pipeline
+✅ Training scripts
+✅ Baseline comparisons
+✅ Interpretability analysis
+✅ LOSO evaluation
+✅ Homology-aware validation
+✅ Checkpoint-based experiment recovery
+
+The complete framework enables reproducible genome-wide enzyme classification experiments using deep learning.
+
+---
+
+# 📬 Contact
+
+For questions regarding the implementation, experiments, or manuscript:
+
+**Corresponding Author:**
+Anjum Shahzad
+
+---
+
+⭐ If this repository contributes to your research, please consider citing the associated publication.
